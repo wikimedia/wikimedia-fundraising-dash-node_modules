@@ -2,19 +2,14 @@
 
 TOOLSET := target
 TARGET := syslog
-DEFS_Debug := \
-	'-D_LARGEFILE_SOURCE' \
+DEFS_Debug := '-D_LARGEFILE_SOURCE' \
 	'-D_FILE_OFFSET_BITS=64' \
-	'-DBUILDING_NODE_EXTENSION' \
 	'-DDEBUG' \
 	'-D_DEBUG'
 
 # Flags passed to all source files.
-CFLAGS_Debug := \
-	-fPIC \
+CFLAGS_Debug := -fPIC \
 	-Wall \
-	-Wextra \
-	-Wno-unused-parameter \
 	-pthread \
 	-m64 \
 	-fPIC \
@@ -22,52 +17,41 @@ CFLAGS_Debug := \
 	-O0
 
 # Flags passed to only C files.
-CFLAGS_C_Debug :=
+CFLAGS_C_Debug := 
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Debug := \
-	-fno-rtti \
+CFLAGS_CC_Debug := -fno-rtti \
 	-fno-exceptions
 
-INCS_Debug := \
-	-I/usr/include/nodejs/src \
-	-I/usr/include/nodejs/deps/uv/include \
-	-I/usr/include/nodejs/deps/v8/include
+INCS_Debug := -I/home/elliott/.node-gyp/0.8.2/src \
+	-I/home/elliott/.node-gyp/0.8.2/deps/uv/include \
+	-I/home/elliott/.node-gyp/0.8.2/deps/v8/include
 
-DEFS_Release := \
-	'-D_LARGEFILE_SOURCE' \
-	'-D_FILE_OFFSET_BITS=64' \
-	'-DBUILDING_NODE_EXTENSION'
+DEFS_Release := '-D_LARGEFILE_SOURCE' \
+	'-D_FILE_OFFSET_BITS=64'
 
 # Flags passed to all source files.
-CFLAGS_Release := \
-	-fPIC \
+CFLAGS_Release := -fPIC \
 	-Wall \
-	-Wextra \
-	-Wno-unused-parameter \
 	-pthread \
 	-m64 \
 	-fPIC \
-	-O2 \
-	-fno-strict-aliasing \
-	-fno-tree-vrp \
-	-fno-omit-frame-pointer
+	-O3 \
+	-fdata-sections \
+	-ffunction-sections
 
 # Flags passed to only C files.
-CFLAGS_C_Release :=
+CFLAGS_C_Release := 
 
 # Flags passed to only C++ files.
-CFLAGS_CC_Release := \
-	-fno-rtti \
+CFLAGS_CC_Release := -fno-rtti \
 	-fno-exceptions
 
-INCS_Release := \
-	-I/usr/include/nodejs/src \
-	-I/usr/include/nodejs/deps/uv/include \
-	-I/usr/include/nodejs/deps/v8/include
+INCS_Release := -I/home/elliott/.node-gyp/0.8.2/src \
+	-I/home/elliott/.node-gyp/0.8.2/deps/uv/include \
+	-I/home/elliott/.node-gyp/0.8.2/deps/v8/include
 
-OBJS := \
-	$(obj).target/$(TARGET)/syslog.o
+OBJS := $(obj).target/$(TARGET)/syslog.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -93,17 +77,15 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 
 # End of this set of suffix rules
 ### Rules for final target.
-LDFLAGS_Debug := \
-	-pthread \
-	-rdynamic \
-	-m64
+LDFLAGS_Debug := -pthread \
+	-m64 \
+	-rdynamic
 
-LDFLAGS_Release := \
-	-pthread \
-	-rdynamic \
-	-m64
+LDFLAGS_Release := -pthread \
+	-m64 \
+	-rdynamic
 
-LIBS :=
+LIBS := 
 
 $(obj).target/syslog.node: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(obj).target/syslog.node: LIBS := $(LIBS)
