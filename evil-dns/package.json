@@ -1,0 +1,38 @@
+{
+  "name": "evil-dns",
+  "version": "0.0.2",
+  "description": "Override the IP address returned for one or more domains.",
+  "main": "evil-dns.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JamesHight/node-evil-dns.git"
+  },
+  "keywords": [
+    "dns",
+    "override",
+    "domain",
+    "change",
+    "ip",
+    "address"
+  ],
+  "author": {
+    "name": "James Hight"
+  },
+  "licenses": [
+    {
+      "type": "Apache 2.0",
+      "url": "https://github.com/JamesHight/node-evil-dns/blob/master/LICENSE"
+    }
+  ],
+  "dependencies": {},
+  "bugs": {
+    "url": "https://github.com/JamesHight/node-evil-dns/issues"
+  },
+  "readme": "Evil DNS\n========\n\nOverride the IP address returned for one or more domains.\n\nNote: This module modifies the core DNS library's lookup function.\n\nInstallation\n------------\n\n````bash\nnpm install evil-dns\n````\n\nUsage\n-----\n\n````javascript\nvar evilDns = require('evil-dns');\n\n// String match\nevilDns.add('foo.com', '1.2.3.4');\n// String with wild cards\nevilDns.add('*foo.*', '1.2.3.4');\n// RegExp match\nevilDns.add(/^foo\\.bar\\..*$/i, '1.2.3.4');\n\n// Remove domain entry\nevilDns.remove('*foo.*','1.2.3.4');\n\n// Remove domain by matching the RegExp source attributes\n// When no ip is passed any entry matching the domain will be removed\nevilDns.remove(/^foo\\.bar\\..*$/i);\n````",
+  "readmeFilename": "README.md",
+  "_id": "evil-dns@0.0.2",
+  "_from": "evil-dns@"
+}
