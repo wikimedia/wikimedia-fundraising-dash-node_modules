@@ -4,8 +4,7 @@ var crypto= require('crypto'),
     https= require('https'),
     URL= require('url'),
     querystring= require('querystring'),
-    OAuthUtils= require('./_utils'),
-    syslog= require( 'node-syslog' );
+    OAuthUtils= require('./_utils');
 
 exports.OAuth= function(requestUrl, accessUrl, consumerKey, consumerSecret, version, authorize_callback, signatureMethod, nonceSize, customHeaders) {
   this._isEcho = false;
@@ -198,7 +197,6 @@ exports.OAuth.prototype._createSignatureBase= function(method, url, parameters) 
 }
 
 exports.OAuth.prototype._createSignature= function(signatureBase, tokenSecret) {
-   syslog.log( syslog.LOG_DEBUG, "Signing OAuth request - base string is '" + signatureBase + "'" );
    if( tokenSecret === undefined ) var tokenSecret= "";
    else tokenSecret= this._encodeData( tokenSecret );
    // consumerSecret is already encoded
