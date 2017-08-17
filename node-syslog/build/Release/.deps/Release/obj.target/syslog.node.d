@@ -1,1 +1,0 @@
-cmd_Release/obj.target/syslog.node := flock ./Release/linker.lock g++ -shared -pthread -m64 -rdynamic  -Wl,-soname=syslog.node -o Release/obj.target/syslog.node -Wl,--start-group Release/obj.target/syslog/syslog.o -Wl,--end-group 
