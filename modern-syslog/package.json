@@ -2,18 +2,18 @@
   "_args": [
     [
       {
-        "raw": "modern-syslog@~1.1.2",
+        "raw": "modern-syslog@~1.1.4",
         "scope": null,
         "escapedName": "modern-syslog",
         "name": "modern-syslog",
-        "rawSpec": "~1.1.2",
-        "spec": ">=1.1.2 <1.2.0",
+        "rawSpec": "~1.1.4",
+        "spec": ">=1.1.4 <1.2.0",
         "type": "range"
       },
       "/home/elliott/src/js/dash"
     ]
   ],
-  "_from": "modern-syslog@>=1.1.2 <1.2.0",
+  "_from": "modern-syslog@>=1.1.4 <1.2.0",
   "_id": "modern-syslog@1.1.4",
   "_inCache": true,
   "_location": "/modern-syslog",
@@ -29,22 +29,21 @@
   "_npmVersion": "3.10.7",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "modern-syslog@~1.1.2",
+    "raw": "modern-syslog@~1.1.4",
     "scope": null,
     "escapedName": "modern-syslog",
     "name": "modern-syslog",
-    "rawSpec": "~1.1.2",
-    "spec": ">=1.1.2 <1.2.0",
+    "rawSpec": "~1.1.4",
+    "spec": ">=1.1.4 <1.2.0",
     "type": "range"
   },
   "_requiredBy": [
-    "#USER",
     "/"
   ],
   "_resolved": "https://registry.npmjs.org/modern-syslog/-/modern-syslog-1.1.4.tgz",
   "_shasum": "b23edf7975f4393042a3e27d177d95cb6ccae7c1",
   "_shrinkwrap": null,
-  "_spec": "modern-syslog@~1.1.2",
+  "_spec": "modern-syslog@~1.1.4",
   "_where": "/home/elliott/src/js/dash",
   "author": {
     "name": "Sam Roberts",

@@ -2,44 +2,44 @@
   "_args": [
     [
       {
-        "raw": "evil-dns@0.1.0",
+        "raw": "evil-dns@0.2.0",
         "scope": null,
         "escapedName": "evil-dns",
         "name": "evil-dns",
-        "rawSpec": "0.1.0",
-        "spec": "0.1.0",
+        "rawSpec": "0.2.0",
+        "spec": "0.2.0",
         "type": "version"
       },
       "/home/elliott/src/js/dash"
     ]
   ],
-  "_from": "evil-dns@0.1.0",
-  "_id": "evil-dns@0.1.0",
+  "_from": "evil-dns@0.2.0",
+  "_id": "evil-dns@0.2.0",
   "_inCache": true,
   "_location": "/evil-dns",
+  "_nodeVersion": "4.2.2",
   "_npmUser": {
     "name": "jmerrick",
     "email": "james@zavoo.com"
   },
-  "_npmVersion": "1.4.14",
+  "_npmVersion": "2.14.7",
   "_phantomChildren": {},
   "_requested": {
-    "raw": "evil-dns@0.1.0",
+    "raw": "evil-dns@0.2.0",
     "scope": null,
     "escapedName": "evil-dns",
     "name": "evil-dns",
-    "rawSpec": "0.1.0",
-    "spec": "0.1.0",
+    "rawSpec": "0.2.0",
+    "spec": "0.2.0",
     "type": "version"
   },
   "_requiredBy": [
-    "#USER",
     "/"
   ],
-  "_resolved": "https://registry.npmjs.org/evil-dns/-/evil-dns-0.1.0.tgz",
-  "_shasum": "be8c071d07cd493ac02429adc6c72857da31694b",
+  "_resolved": "https://registry.npmjs.org/evil-dns/-/evil-dns-0.2.0.tgz",
+  "_shasum": "6ff64bf9c99a18df465458e6878ac570ea15d9b9",
   "_shrinkwrap": null,
-  "_spec": "evil-dns@0.1.0",
+  "_spec": "evil-dns@0.2.0",
   "_where": "/home/elliott/src/js/dash",
   "author": {
     "name": "James Hight"
@@ -63,13 +63,13 @@
   },
   "directories": {},
   "dist": {
-    "shasum": "be8c071d07cd493ac02429adc6c72857da31694b",
-    "tarball": "https://registry.npmjs.org/evil-dns/-/evil-dns-0.1.0.tgz"
+    "shasum": "6ff64bf9c99a18df465458e6878ac570ea15d9b9",
+    "tarball": "https://registry.npmjs.org/evil-dns/-/evil-dns-0.2.0.tgz"
   },
   "engines": {
     "node": ">=0.12"
   },
-  "gitHead": "14b6528908e5458c7ea343496ce635c50687c423",
+  "gitHead": "eeafa952481042f9c9d17a40c7fabc54e4c04fc5",
   "homepage": "https://github.com/JamesHight/node-evil-dns#readme",
   "keywords": [
     "dns",
@@ -103,5 +103,5 @@
   "scripts": {
     "test": "mocha -R spec ./tests"
   },
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

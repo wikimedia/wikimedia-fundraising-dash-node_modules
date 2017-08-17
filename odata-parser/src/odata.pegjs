@@ -1,9 +1,23 @@
 /*
  * OData query expression grammar.
  * Note: use this gramar with pegjs:
- *  - http://pegjs.majda.cz/ 
+ *  - http://pegjs.majda.cz/
  *  - https://github.com/dmajda/pegjs
  */
+
+{
+  function filterExprHelper(left, right){
+    if (right) {
+        return {
+            type: right.type,
+            left: left,
+            right: right.value
+        }
+    } else {
+        return left;
+    }
+  }
+}
 
 start                       = query
 
@@ -25,83 +39,79 @@ SQUOTE                      =   "%x27" / "'"
 
 // end: Basic cons
 
-/* 
+/*
  * OData literals - adapted from OData ABNF:
  *  - http://www.odata.org/media/30002/OData%20ABNF.html
  */
 primitiveLiteral            =   null /
-                                binary / 
-                                boolean /
-                                byte /
+                                binary /
                                 dateTime /
                                 dateTimeOffset /
-                                decimal /
+                                guid /
                                 double /
-                                guid / 
-                                int32 /
-                                int64 / 
-                                sbyte /
+                                decimal /
                                 single /
+                                int32 /
+                                int64 /
+                                byte /
+                                sbyte /
+                                boolean /
                                 string
 
 
-null                        =   "null" ( "'" identifier "'" )? 
-                                // The optional qualifiedTypeName is used to specify what type this null value should be considered. 
-                                // Knowing the type is useful for function overload resolution purposes. 
+null                        =   "null" ( "'" identifier "'" )?
+                                // The optional qualifiedTypeName is used to specify what type this null value should be considered.
+                                // Knowing the type is useful for function overload resolution purposes.
 
 binary                      =   ( "%d88" / "binary" )
-                                SQUOTE 
-                                HEXDIG HEXDIG 
+                                SQUOTE
+                                HEXDIG HEXDIG
                                 SQUOTE
                                 // note: "X" is case sensitive "binary" is not hence using the character code.
 
-boolean                     =   "true" { return true; } / 
-                                "1" { return true; } / 
-                                "false" { return false; } / 
-                                "0" { return false; } 
+boolean                     =   "true" { return true; } /
+                                "1" { return true; } /
+                                "false" { return false; } /
+                                "0" { return false; }
 
 byte                        =   DIGIT DIGIT DIGIT
                                 // numbers in the range from 0 to 257
 
 dateTime                    =   "datetime" SQUOTE a:dateTimeBody SQUOTE { return new Date(a); }
 
-dateTimeOffset              =   "datetimeoffset" SQUOTE dateTimeOffsetBody SQUOTE
+dateTimeOffset              =   "datetimeoffset" SQUOTE a:dateTimeOffsetBody SQUOTE { return new Date(a); }
 
-dateTimeBodyA               =  a:year "-" b:month "-" c:day "T" d:hour ":" e:minute "Z"? {
+dateTimeBodyA               =  a:year "-" b:month "-" c:day "T" d:hour ":" e:minute {
                                     return a + '-' + b + '-' + c + "T" + d + ":" + e;
                                 }
-dateTimeBodyB               =  a:dateTimeBodyA ":" b:second "Z"? { return a + ":" + b; }
+dateTimeBodyB               =  a:dateTimeBodyA ":" b:second { return a + ":" + b; }
 dateTimeBodyC               =  a:dateTimeBodyB "." b:nanoSeconds { return a + "." + b; }
 dateTimeBodyD               =  a:dateTimeBodyC "-" b:zeroToTwentyFour ":" c:zeroToSixty {
                                     return a + "-" + b + ":" + c;
                                 }
-dateTimeBody                =   
+dateTimeBody                =
                                dateTimeBodyD
                              / dateTimeBodyC
                              / dateTimeBodyB
                              / dateTimeBodyA
 
-dateTimeOffsetBody          =   dateTimeBody "Z" / // TODO: is the Z optional?
-                                dateTimeBody sign zeroToThirteen ":00" /
-                                dateTimeBody sign zeroToThirteen /
-                                dateTimeBody sign zeroToTwelve ":" zeroToSixty /
-                                dateTimeBody sign zeroToTwelve
+dateTimeOffsetBody          =   a:dateTimeBody "Z" { return a + "Z"; } /
+                                a:dateTimeBody b:sign c:zeroToThirteen ":00" { return a + b + c + ":00"; } /
+                                a:dateTimeBody b:sign c:zeroToThirteen { return a + b + c; } /
+                                a:dateTimeBody b:sign c:zeroToTwelve ":" d:zeroToSixty { return a + b + c + ":" + d; } /
+                                a:dateTimeBody b:sign c:zeroToTwelve { return a + b + c; }
 
-decimal                     =
-                               sign:sign digit:DIGIT+ "." decimal:DIGIT+ ("M"/"m")? { return parseInt(digit + '.' + decimal) * (sign === '-' ? -1 : 1); }
-                             / sign:sign digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
+decimal                     =  sign:sign? digit:DIGIT+ "." decimal:DIGIT+ ("M"/"m")? { return sign + digit.join('') + '.' + decimal.join(''); } /
+                               sign:sign? digit:DIGIT+ ("M"/"m") { return sign + digit.join(''); }
 
-double                      =   (  
-                                    sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
-                                    sign DIGIT* "." DIGIT+ /
-                                    sign DIGIT+
-                                ) ("D" / "d") /
-                                nanInfinity ( "D" / "d" )?
-
+double                      =  sign:sign? digit:DIGIT "." decimal:DIGIT+ ("e" / "E") signexp:sign? exp:DIGIT+ ("D" / "d")? { return sign + digit + '.' + decimal.join('') + 'e' + signexp + exp.join(''); } /
+                               sign:sign? digit:DIGIT+ "." decimal:DIGIT+ ("D" / "d") { return sign + digit.join('') + '.' + decimal.join(''); } /
+                               sign:sign? digit:DIGIT+ ("D" / "d") { return sign + digit.join(''); } /
+                               nanInfinity ("D" / "d")?
 
 guid                        =   "guid" SQUOTE HEXDIG8 "-" HEXDIG4 "-" HEXDIG4 "-" HEXDIG8 HEXDIG4 SQUOTE
 
-int32                       =   sign:sign? digit:DIGIT+ { return parseInt(digit) * (sign === '-' ? -1 : 1); }
+int32                       =   sign:sign? digit:DIGIT+ { return parseInt(digit.join('')) * (sign === '-' ? -1 : 1); }
                                 // numbers in the range from -2147483648 to 2147483647
 
 int64                       =   sign? DIGIT+ ( "L" / "l" )?
@@ -110,7 +120,7 @@ int64                       =   sign? DIGIT+ ( "L" / "l" )?
 sbyte                       =   sign? DIGIT DIGIT? DIGIT?
                                 // numbers in the range from -128 to 127
 
-single                      =   (  
+single                      =   (
                                     sign DIGIT "." DIGIT+ ( "e" / "E" ) sign DIGIT+ /
                                     sign DIGIT* "." DIGIT+ /
                                     sign DIGIT+
@@ -124,7 +134,7 @@ oneToNine                   =   [1-9]
 
 zeroToTwelve                =   a:"0" b:[1-9] { return a + b;} / a:"1" b:[0-2] { return a + b; }
 
-zeroToThirteen              =   zeroToTwelve / "13" 
+zeroToThirteen              =   zeroToTwelve / "13"
 
 zeroToSixty                 =   "60" / a:[0-5] b:DIGIT { return a + b; }
 
@@ -163,9 +173,10 @@ nanInfinity                 =   nan / negativeInfinity / positiveInfinity
  */
 
 unreserved                  = a:[a-zA-Z0-9-_]+ { return a.join(''); }
-validstring                 = a:[^']* { return a.join(''); }
-identifierPart              = a:[a-zA-Z] b:unreserved { return a + b; }
-identifier                  = 
+validstring                 = a:([^']/escapedQuote)* { return a.join('').replace(/('')/g, "'"); }
+escapedQuote                = a:"''" { return a; }
+identifierPart              = a:[_a-zA-Z] b:unreserved? { return a + b; }
+identifier                  =
                                 a:identifierPart list:("." i:identifier {return i;})? {
                                     if (list === "") list = [];
                                     if (require('util').isArray(list[0])) {
@@ -174,13 +185,16 @@ identifier                  =
                                     list.unshift(a);
                                     return list.join('.');
                                 }
-                                
+
 
 // --
 
 /*
  * OData query options
  */
+
+// callback
+callback                    =   "$callback=" a:identifier { return { '$callback': a }; }
 
 // $top
 top                         =   "$top=" a:INT { return { '$top': ~~a }; }
@@ -204,22 +218,22 @@ skip                        =   "$skip=" a:INT {return {'$skip': ~~a }; }
                             /   "$skip=" .* { return {"error": 'invalid $skip parameter'}; }
 
 //$format
-format                      =   "$format=" unreserved*
+format                      =   "$format=" v:.+ { return {'$format': v.join('') }; }
                             /   "$format=" .* { return {"error": 'invalid $format parameter'}; }
 //$inlinecount
-inlinecount                 =   "$inlinecount=" unreserved*
+inlinecount                 =   "$inlinecount=" v:("allpages" / "none") { return {'$inlinecount': v }; }
                             /   "$inlinecount=" .* { return {"error": 'invalid $inlinecount parameter'}; }
 
 // $orderby
-orderby                     =   "$orderby=" list:orderbyList { 
+orderby                     =   "$orderby=" list:orderbyList {
                                     return { "$orderby": list }; }
                             /   "$orderby=" .* { return {"error": 'invalid $orderby parameter'}; }
 
-orderbyList                 = i:(id:identifier ord:(WSP ("asc"/"desc"))? { 
+orderbyList                 = i:(id:identifier ord:(WSP ("asc"/"desc"))? {
                                     var result = {};
                                     result[id] = ord[1] || 'asc';
                                     return result;
-                                }) 
+                                })
                               list:("," WSP? l:orderbyList{return l;})? {
 
                                     if (list === "") list = [];
@@ -235,15 +249,13 @@ select                      =   "$select=" list:selectList { return { "$select":
                             /   "$select=" .* { return {"error": 'invalid $select parameter'}; }
 
 identifierPathParts         =   "/" i:identifierPart list:identifierPathParts? {
-                                    if (list === "") list = [];
                                     if (require('util').isArray(list[0])) {
                                         list = list[0];
                                     }
-                                    list.unshift("/" + i);
-                                    return list;
+                                    return "/" + i + list;
                                 }
 identifierPath              =   a:identifier b:identifierPathParts? { return a + b; }
-selectList                  =   
+selectList                  =
                                 i:(a:identifierPath b:".*"?{return a + b;}/"*") list:("," WSP? l:selectList {return l;})? {
                                     if (list === "") list = [];
                                     if (require('util').isArray(list[0])) {
@@ -254,28 +266,23 @@ selectList                  =
                                 }
 
 //filter
-filter                      =   "$filter=" list:filterExpr { 
-                                    return { 
+filter                      =   "$filter=" list:filterExpr {
+                                    return {
                                         "$filter": list
-                                    }; 
+                                    };
                                 }
                             /   "$filter=" .* { return {"error": 'invalid $filter parameter'}; }
 
 filterExpr                  = 
-                              "(" WSP? filterExpr WSP? ")" ( WSP ("and"/"or") WSP filterExpr)? / 
+                              left:("(" WSP? filter:filterExpr WSP? ")"{return filter}) right:( WSP type:("and"/"or") WSP value:filterExpr{
+                                    return { type: type, value: value}
+                              })? {
+                                return filterExprHelper(left, right);
+                              } / 
                               left:cond right:( WSP type:("and"/"or") WSP value:filterExpr{
                                     return { type: type, value: value}
                               })? {
-
-                                if (right) {
-                                    return {
-                                        type: right.type,
-                                        left: left,
-                                        right: right.value
-                                    }
-                                } else {
-                                    return left;
-                                }
+                                return filterExprHelper(left, right);
                               }
 
 booleanFunctions2Args       = "substringof" / "endswith" / "startswith" / "IsOf"
@@ -286,7 +293,7 @@ booleanFunc                 =  f:booleanFunctions2Args "(" arg0:part "," WSP? ar
                                         func: f,
                                         args: [arg0, arg1]
                                     }
-                                } / 
+                                } /
                                 "IsOf(" arg0:part ")" {
                                     return {
                                         type: "functioncall",
@@ -295,8 +302,43 @@ booleanFunc                 =  f:booleanFunctions2Args "(" arg0:part "," WSP? ar
                                     }
                                 }
 
+otherFunctions1Arg          = "tolower" / "toupper" / "trim" / "length" / "year" /
+                              "month" / "day" / "hour" / "minute" / "second" /
+                              "round" / "floor" / "ceiling"
 
-cond                        = a:part WSP op:op WSP b:part { 
+otherFunc1                  = f:otherFunctions1Arg "(" arg0:part ")" {
+                                  return {
+                                      type: "functioncall",
+                                      func: f,
+                                      args: [arg0]
+                                  }
+                              }
+
+otherFunctions2Arg         = "indexof" / "concat" / "substring" / "replace"
+
+otherFunc2                 = f:otherFunctions2Arg "(" arg0:part "," WSP? arg1:part ")" {
+                                  return {
+                                      type: "functioncall",
+                                      func: f,
+                                      args: [arg0, arg1]
+                                  }
+                              } /
+                              "substring" "(" arg0:part "," WSP? arg1:part "," WSP? arg2:part ")" {
+                                  return {
+                                      type: "functioncall",
+                                      func: "substring",
+                                      args: [arg0, arg1, arg2]
+                                  }
+                              } /
+                              "replace" "(" arg0:part "," WSP? arg1:part "," WSP? arg2:part ")" {
+                                  return {
+                                      type: "functioncall",
+                                      func: "replace",
+                                      args: [arg0, arg1, arg2]
+                                  }
+                              }
+
+cond                        = a:part WSP op:op WSP b:part {
                                     return {
                                         type: op,
                                         left: a,
@@ -304,20 +346,22 @@ cond                        = a:part WSP op:op WSP b:part {
                                     };
                                 } / booleanFunc
 
-part                        =   booleanFunc / 
+part                        =   booleanFunc /
+                                otherFunc2 /
+                                otherFunc1 /
                                 l:primitiveLiteral {
                                     return {
                                         type: 'literal',
                                         value: l
                                     };
                                 } /
-                                (u:identifier { 
-                                    return { 
+                                (u:identifierPath {
+                                    return {
                                         type: 'property', name: u
-                                    }; 
+                                    };
                                 })
-                                
-op                          = 
+
+op                          =
                                 "eq" /
                                 "ne" /
                                 "lt" /
@@ -340,10 +384,10 @@ unsupported                 =   "$" er:.* { return { error: "unsupported method:
 
 expList                     = e:exp "&" el:expList { return [e].concat(el); } /
                               e:exp { return [e]; }
-                              
+
 
 exp                         =
-                                expand / 
+                                expand /
                                 filter /
                                 orderby /
                                 skip /
@@ -351,6 +395,7 @@ exp                         =
                                 format /
                                 inlinecount /
                                 select /
+                                callback /
                                 unsupported
 
 query                       = list:expList {

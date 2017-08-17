@@ -15,7 +15,16 @@ exports.OAuth2= function(clientId, clientSecret, baseSite, authorizePath, access
   this._authMethod= "Bearer";
   this._customHeaders = customHeaders || {};
   this._useAuthorizationHeaderForGET= false;
-}
+
+  //our agent
+  this._agent = undefined;
+};
+
+// Allows you to set an agent to use instead of the default HTTP or
+// HTTPS agents. Useful when dealing with your own certificates.
+exports.OAuth2.prototype.setAgent = function(agent) {
+  this._agent = agent;
+};
 
 // This 'hack' method is required for sites that don't use
 // 'access_token' as the name of the access token (for requests).
@@ -60,7 +69,6 @@ exports.OAuth2.prototype._chooseHttpLibrary= function( parsedUrl ) {
 
 exports.OAuth2.prototype._request= function(method, url, headers, post_body, access_token, callback) {
 
-  var creds = crypto.createCredentials({ });
   var parsedUrl= URL.parse( url, true );
   if( parsedUrl.protocol == "https:" && !parsedUrl.port ) {
     parsedUrl.port= 443;
@@ -120,7 +128,7 @@ exports.OAuth2.prototype._executeRequest= function( http_library, options, post_
   function passBackControl( response, result ) {
     if(!callbackCalled) {
       callbackCalled=true;
-      if( response.statusCode != 200 && (response.statusCode != 301) && (response.statusCode != 302) ) {
+      if( !(response.statusCode >= 200 && response.statusCode <= 299) && (response.statusCode != 301) && (response.statusCode != 302) ) {
         callback({ statusCode: response.statusCode, data: result });
       } else {
         callback(null, result, response);
@@ -130,7 +138,13 @@ exports.OAuth2.prototype._executeRequest= function( http_library, options, post_
 
   var result= "";
 
-  var request = http_library.request(options, function (response) {
+  //set the agent on the request options
+  if (this._agent) {
+    options.agent = this._agent;
+  }
+
+  var request = http_library.request(options);
+  request.on('response', function (response) {
     response.on("data", function (chunk) {
       result+= chunk
     });

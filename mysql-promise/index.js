@@ -1,19 +1,64 @@
 'use strict';
 
-var Promise = require('bluebird'),
-	mysql = require('mysql'),
-	instances = {};
+var BlueBird = require('bluebird');
+var instances = {};
+var defaultMysqlDriver;
 
+/**
+ * Constructor
+ */
 function DB() {
 	this.pool = null;
+	this.PromiseImpl = BlueBird;
 }
 
 /**
  * Setup the Database connection pool for this instance
  * @param  {Object} config
+ * @param {Object} [mysql] mysql driver
+ * @param {Object} [PromiseImpl] PromiseImpl promise implementation to use
  */
-DB.prototype.configure = function (config) {
+DB.prototype.configure = function (config, mysql, PromiseImpl) {
+	if (!mysql) {
+		if (!defaultMysqlDriver) {
+			defaultMysqlDriver = require('mysql');
+		}
+		mysql = defaultMysqlDriver;
+	}
+
+	if (PromiseImpl) {
+		this.PromiseImpl = PromiseImpl;
+	}
 	this.pool = mysql.createPool(config);
+};
+
+/**
+ * Check if a pool has been configured for this instane.
+ * @return {Boolean}
+ */
+DB.prototype.isConfigured = function () {
+	return Boolean(this.pool);
+};
+
+/**
+ * Get a connection from the pool
+ * @return {Promise} resolves with the connection
+ */
+DB.prototype.getConnection = function () {
+	var self = this;
+
+	return new self.PromiseImpl(function (resolve, reject) {
+		self.pool.getConnection(function (err, con) {
+			if (err) {
+				if (con) {
+					con.release();
+				}
+				return reject(err);
+			}
+
+			return resolve(con);
+		});
+	});
 };
 
 /**
@@ -23,23 +68,44 @@ DB.prototype.configure = function (config) {
  * @return {Promise}
  */
 DB.prototype.query = function (query, params) {
-	var defer = Promise.defer();
+	var self = this;
 	params = params || {};
 
-	this.pool.getConnection(function (err, con) {
-		if (err) {
-			return defer.reject(err);
-		}
+	return this
+		.getConnection()
+		.then(function (con) {
+			return new self.PromiseImpl(function (resolve, reject) {
+				con.query(query, params, function (err) {
+					if (err) {
+						if (con) {
+							con.release();
+						}
+						return reject(err);
+					}
 
-		con.query(query, params, function (err) {
+					con.release();
+					resolve([].splice.call(arguments, 1));
+				});
+			});
+		});
+};
+
+/**
+ * End DB pool connections
+ * @return {Promise}
+ */
+DB.prototype.end = function () {
+	var self = this;
+
+	return new self.PromiseImpl(function (resolve, reject) {
+		self.pool.end(function (err) {
 			if (err) {
-				return defer.reject(err);
+				return reject(err);
 			}
-			defer.resolve([].splice.call(arguments, 1));
-			con.release();
+
+			resolve();
 		});
 	});
-	return defer.promise;
 };
 
 module.exports = function (name) {
@@ -48,4 +114,12 @@ module.exports = function (name) {
 		instances[name] = new DB();
 	}
 	return instances[name];
+};
+
+/**
+ * Get all instances
+ * @return {Object}
+ */
+module.exports.getInstances = function () {
+	return instances;
 };
